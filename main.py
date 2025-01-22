@@ -8,8 +8,8 @@ import datetime
 config = dotenv_values(".env")
 
 # Define start and end times for the desired time range (8:45 to 15:40 IST)
-start_time = datetime.time(8, 45)
-end_time = datetime.time(15, 40)
+start_time = datetime.time(8, 55)
+end_time = datetime.time(15, 35)
 timer = 60.0
 
 # Configuring Telegram Bot
@@ -60,7 +60,7 @@ def get_targets():
 
     except Exception as error:
         send(f"received error : {error}")
-        return error
+        return (0, 0, 0, False)
 
 
 def calculation(latest_price, CE, PE, BUFFER):
@@ -76,15 +76,16 @@ def calculation(latest_price, CE, PE, BUFFER):
         bool: true if the index entered buffer or crossed, false otherwise
     """
     # CE_chance, PE_chance = latest_price - CE, latest_price - PE
-    approach_CE, approach_PE = latest_price - CE, latest_price - PE
+    approach_CE, approach_PE = CE - BUFFER, PE + BUFFER
 
-    if (approach_CE >= -1 * BUFFER) or (approach_PE <= BUFFER):
+    if( (latest_price >= approach_CE) or (latest_price<=approach_PE) ):
         send("Index entered Buffer Zone")
 
-    elif approach_CE >= BUFFER:
-        send("Index Crossed Buffer Zone")
-    elif approach_PE <= BUFFER:
-        send("Index Crossed Buffer Zone")
+    elif latest_price >= CE + BUFFER:
+        send("Index Crossed CE Buffer Zone")
+
+    elif latest_price <=  PE - BUFFER:
+        send("Index Crossed PE Buffer Zone")
 
 
 def get_nifty_price():
@@ -113,17 +114,19 @@ if __name__ == "__main__":
             send("rader started")
             while RADAR:
                 latest_price = get_nifty_price()
-                send(f"NIfty - {latest_price}")
                 calculation(latest_price, CE, PE, BUFFER)
                 time.sleep(timer - ((time.monotonic() - starttime) % timer))
 
                 if not is_between(start_time, end_time):
                     send("⏸ Radar Stopped")
+                    time.sleep(17*15*60)
                     break
-            else:
-                send("failed to fetch")
+ 
+            send("failed to fetch, update the targets")
+            time.sleep(5*60)
 
         # If it's not a weekday, print "not now" and wait 24 hours
         else:
             # it's weekend, check in after 24 hours
+            send("----weekend----")
             time.sleep(24 * 60 * 60)
