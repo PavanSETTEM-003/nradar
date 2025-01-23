@@ -8,8 +8,8 @@ import datetime
 config = dotenv_values(".env")
 
 # Define start and end times for the desired time range (8:45 to 15:40 IST)
-start_time = datetime.time(7, 40)
-end_time = datetime.time(7, 50)
+start_time = datetime.time(8, 15)
+end_time = datetime.time(8, 25)
 timer = 60.0
 
 # Configuring Telegram Bot
@@ -26,6 +26,11 @@ def is_weekday():
     """Check if the current day is a weekday."""
     today = datetime.date.today()
     return today.weekday() in range(0, 5)
+
+def IST(message):
+    # Returns the current time in IST (India Standard Time) along with a given message, including the day of the week.
+    now = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
+    return f"{now.strftime('%A, %Y-%m-%d %H:%M:%S')} -- {message}"
 
 
 def send(message):
@@ -107,11 +112,11 @@ if __name__ == "__main__":
     while True:
         # Check if it's a weekday and current time is within the desired range
         if is_between(start_time, end_time) and is_weekday():
-            print("with in time range")
             CE, PE, BUFFER, RADAR = get_targets()
             
             starttime = time.monotonic()
             send("rader started")
+            print(IST("Radar Started"))
             while RADAR:
                 latest_price = get_nifty_price()
                 calculation(latest_price, CE, PE, BUFFER)
@@ -119,6 +124,7 @@ if __name__ == "__main__":
 
                 if not is_between(start_time, end_time):
                     send("⏸ Radar Stopped")
+                    print(IST("Radar stopped"))
                     time.sleep(17*15*60)
                     break
  
@@ -126,7 +132,11 @@ if __name__ == "__main__":
             time.sleep(5*60)
 
         # If it's not a weekday, print "not now" and wait 24 hours
-        else:
+        elif(is_weekday() == False):
             # it's weekend, check in after 24 hours
             send("----weekend----")
             time.sleep(24 * 60 * 60)
+        
+        # let check again for the time range after 30 sec delay
+        else:
+            time.sleep(30)
