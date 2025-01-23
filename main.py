@@ -8,8 +8,8 @@ import datetime
 config = dotenv_values(".env")
 
 # Define start and end times for the desired time range (8:45 to 15:40 IST)
-start_time = datetime.time(8, 55)
-end_time = datetime.time(15, 35)
+start_time = datetime.time(7, 40)
+end_time = datetime.time(7, 50)
 timer = 60.0
 
 # Configuring Telegram Bot
